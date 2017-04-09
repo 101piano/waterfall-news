@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>waterfall-news</title>
+  <style>
+    ul,li,h3,p {
+      margin: 0;
+      padding: 0;      
+    }
+    ul,li {
+      list-style: none;
+      box-sizing: border-box;
+    }
+    .container {
+      width: 900px;
+      margin: 10px auto;     
+    }
+    .img-waterfall {
+      position: relative;
+    }
+    .img-waterfall li {
+      width: 280px;     
+      margin: 5px;
+      border: 1px solid #ccc;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .img-waterfall li img {
+      width: 260px;
+      margin: 10px 10px 0 10px;
+    }
+    .img-waterfall li h3 {
+      font-size: 16px;
+      border-bottom: 1px solid #ccc;
+      line-height: 2;
+      margin: 0 10px;
+    }
+    .img-waterfall li p {
+      font-size: 14px;
+      color: #aaa;
+      line-height: 1.5;
+      margin: 0 10px;
+    }
+    .load-more {
+      width: 100px;
+      height: 300px;
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <ul class="img-waterfall clearfix">
+    
+    </ul>
+    <div class="load-more"></div>
+  </div>
+  <script src="jquery-3.2.0.min.js"></script>
+  <script>
+    /*当条件改变时
+      1、获取数据
+      2、拼接数据
+      3、使用瀑布流布局摆放数据    
+    */
+    
+    var imgWaterfall=$(".img-waterfall");
+    var ctWidth=$(".img-waterfall").width();//容器宽度
+  
+    var pageIndex=1;
+    var pageCount=10;//一次获取10个数据
+  
+    var nodeArr=[];//放置高度
+    
+    var loadMore=$(".load-more");
+    var isDataArrive=true;  //判断数据是否获得
+  
+    getData();
+    
+    //当条件改变时
+    $(window).scroll(function(){
+      //判断loadMore是否在页面上
+      if(isShow(loadMore) && isDataArrive ){
+        getData();
+      }
+      else {
+        return;
+      }
+    });
+    
+   //判断loadMore是否在页面上
+    function isShow($node){
+      var windowHeight=$(window).height(),//窗口(可视区域)高度
+          scrollTop=$(document).scrollTop(),//窗口滚动距离
+          offsetTop=$node.offset().top,//元素距document高度
+          nodeHeight=$node.height();//元素高度
+      if(scrollTop<(offsetTop+nodeHeight) && offsetTop<scrollTop+windowHeight){
+        return true;
+      }else {
+        return false;
+      }
+    }
+  
+  
+    //1、获取数据
+    function getData(){ 
+      isDataArrive=false;
+      $.ajax({
+        url: "http://platform.sina.com.cn/slide/album_tech",
+        method: "get",
+        dataType: "jsonp",//????????????
+        jsonp: "jsoncallback",
+        data: {
+          app_key: "1271687855",
+          format: "json",
+          size: "img",
+          page: pageIndex,
+          num: pageCount
+        }
+      }).done(function(result){
+        if(result.status.code==0){
+          isDataArrive=true;
+          var nodedatas=appendHtml(result.data);
+          isImgLoad(nodedatas);
+          pageIndex++;
+          console.log(pageIndex);
+        }else{
+          alert("获取数据失败");
+        }
+      }).fail(function(){  
+        alert("系统出错了");
+      });           
+    }
+    
+    //2、拼接数据
+    function appendHtml(datas){
+      var html="";
+      $.each(datas,function(){
+        html+="<li class='item'>";
+        html+="<a href='#' class='link'><img src="+this.img_url+"></a>";
+        html+="<h3 class='header'>"+this.short_name+"</h3>";
+        html+="<p class='introduce'>"+this.short_intro+"</p>";
+        html+="</li>";
+      });
+      var $nodes=$(html);
+      imgWaterfall.append($nodes);
+      return $nodes;
+      /*直接return $(html),相当于返回的是 $(html)，
+      这个相当于创建新的 jquery 对象，而不是刚刚append 的 jquery 对象*/
+    }
+    
+    
+    //3、判断图片是否已加载
+    function isImgLoad($imgs){
+      $imgs.each(function(){
+        $(this).find("img").on("load",function(){
+          waterFall($(this));
+        })       
+      });
+    }
+
+    //3、使用瀑布流布局摆放数据  
+    /*ctWidth:容器宽度
+      nodeWidth:li元素宽度
+      nodeCount:每行摆放元素的个数*/       
+    function waterFall(node){  
+      var nodeParent=node.parents("li");
+      var nodeWidth=nodeParent.outerWidth(true);//li元素宽度加了外边距;
+      var columnNum=parseInt(ctWidth/nodeWidth);//每行摆放元素的个数;
+      if(nodeArr.length==0){
+        for(var i=0;i<columnNum;i++){
+           nodeArr.push(0);
+        }       
+      }
+      var minValue=Math.min.apply(null,nodeArr);  
+      var minIndex=nodeArr.indexOf(minValue); 
+     
+      nodeParent.css({
+        top: nodeArr[minIndex],
+        left: nodeWidth*minIndex        
+      });      
+      nodeArr[minIndex]+=nodeParent.outerHeight(true);
+      imgWaterfall.height(Math.min.apply(null,nodeArr));//解决ul元素高度塌陷的问题
+    }
+  </script>
+</body>
+</html>
+
+
+ 
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
