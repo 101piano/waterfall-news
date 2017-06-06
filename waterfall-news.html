@@ -102,6 +102,7 @@
     }
     //1、获取数据
     function getData(){
+      isDataArrive=false;
       jsonp({
         url: "https://platform.sina.com.cn/slide/album_tech",
         method: "get",
