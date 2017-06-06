@@ -60,9 +60,9 @@
   <script src="jquery-3.2.0.min.js"></script>
   <script>
     /*当条件改变时
-      1、获取数据
-      2、拼接数据
-      3、使用瀑布流布局摆放数据    
+     * 1、获取数据
+     * 2、拼接数据
+     * 3、使用瀑布流布局摆放数据    
     */
     
     var imgWaterfall=$(".img-waterfall");
@@ -76,7 +76,29 @@
     var loadMore=$(".load-more");
     var isDataArrive=true;  //判断数据是否获得
   
-    getData();
+    //getData();
+    console.log('第一次')
+    console.log(pageIndex)
+    jsonp({
+        url: "http://platform.sina.com.cn/slide/album_tech",
+        method: "get",
+        dataType: "jsonp",
+        jsonp: "jsoncallback",
+        data: {
+          app_key: "1271687855",
+          format: "json",
+          size: "img",
+          page: pageIndex,
+          num: pageCount
+        },
+        callback: function(ret){
+          isDataArrive=true;
+          var nodedatas=appendHtml(ret.data);
+          isImgLoad(nodedatas);
+          pageIndex++;
+          console.log(pageIndex)
+        }
+      })
     
     //当条件改变时
     $(window).scroll(function(){
@@ -92,18 +114,62 @@
    //判断loadMore是否在页面上
     function isShow($node){
       var windowHeight=$(window).height(),//窗口(可视区域)高度
-          scrollTop=$(document).scrollTop(),//窗口滚动距离
-          offsetTop=$node.offset().top,//元素距document高度
-          nodeHeight=$node.height();//元素高度
+        scrollTop=$(document).scrollTop(),//窗口滚动距离
+        offsetTop=$node.offset().top,//元素距document高度
+        nodeHeight=$node.height();//元素高度
       if(scrollTop<(offsetTop+nodeHeight) && offsetTop<scrollTop+windowHeight){
         return true;
       }else {
         return false;
       }
     }
-  
-  
     //1、获取数据
+    function getData(){
+      jsonp({
+        url: "http://platform.sina.com.cn/slide/album_tech",
+        method: "get",
+        dataType: "jsonp",
+        jsonp: "jsoncallback",
+        data: {
+          app_key: "1271687855",
+          format: "json",
+          size: "img",
+          page: pageIndex,
+          num: pageCount
+        },
+        callback: function(ret){
+          isDataArrive=true;
+          var nodedatas=appendHtml(ret.data);
+          isImgLoad(nodedatas);
+          pageIndex++;
+          console.log('----')
+          console.log(pageIndex)
+        }
+      })
+    }
+    
+    //封装JSONP
+    function jsonp(setting) {
+      setting.data = setting.data || {}    //
+      setting.jsonp = setting.jsonp || 'callback'
+      setting.callback = setting.callback || function(){}
+      setting.data[setting.jsonp] = '__onGetData__'
+      window.__onGetData__ = function(data) {
+        setting.callback(data);
+      }
+  
+      var script = document.createElement('script')
+      var query = []
+      for(var key in setting.data) {
+        query.push(key + '=' + encodeURIComponent(setting.data[key]))
+      }
+      script.src = setting.url + '?' +query.join('&')
+      
+      document.head.appendChild(script)
+      document.head.removeChild(script)
+    }
+    
+/*  ajax获取数据  
     function getData(){ 
       isDataArrive=false;
       $.ajax({
@@ -132,7 +198,7 @@
         alert("系统出错了");
       });           
     }
-    
+*/    
     //2、拼接数据
     function appendHtml(datas){
       var html="";
@@ -190,25 +256,6 @@
 
  
   
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
